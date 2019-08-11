@@ -35,6 +35,13 @@ bot.on(alarmTime == getCurrentTime(), (msg) => {
     return bot.sendMessage(id, message)
 })
 
+if(alarmTime == getCurrentTime()) {
+    const id = msg.from.id;
+    const message = 'ALARMA!!' + alarmTime
+    console.log(message)
+    bot.sendMessage(id, message);
+}
+
    // (msg) => msg.reply.text('Alarma seteada a las ' + alarmTime));
 bot.on(/siempre\sdel\slado\scorrecto/i, (msg) => {
     return msg.reply.photo('https://d1aeri3ty3izns.cloudfront.net/media/3/33238/600/preview_2.jpg');
