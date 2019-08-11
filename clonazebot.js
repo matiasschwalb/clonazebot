@@ -1,46 +1,83 @@
 const TeleBot = require('telebot');
 const bot = new TeleBot('979548003:AAEJIV5pvxmeKKo_HUsriahADmpXfwZb3Sk');
-let alarmTime =  0;
+const EventEmitter = require('events');
+const emmiter = new EventEmitter();
 
-bot.on(['/start', '/hello'], (msg) => msg.reply.text('¡Holis!'));
+let myMessage = '';
+let alarmTime =  0;
+let chatID = 0;
+
+
+bot.on(['/start', '/hello'], (msg) => {
+    chatID = msg.from.id;
+    console.log('Saved chatID: ' + chatID);
+    emmiter.emit('triggerAlarm');
+    return msg.reply.text('¡Holis!');
+});
+/*
 bot.on('text', msg => {
     const id = msg.from.id;
-    var input = msg.text;
-    var message = "";
+    let outputIsEmpty = true;
+    let input = msg.text;
+    let message = "";
 
     if(input.startsWith("/set")) {
         alarmTime = getParameters(input)
         message = "Seteaste la alarma a las " + alarmTime;
     // } else {
     //     message = "No te entiendo";
+         outputIsEmpty = false;
     }
 
     if(input.startsWith("/alarm")) {
         message = "Tenes una alarma puesta a las " + alarmTime
+        outputIsEmpty = false;
     }
 
     if(input.startsWith("/time")) {
         currentTime = getCurrentTime();
         message = "Son las " + currentTime;
+        outputIsEmpty = false;
     }
+
+    if(outputIsEmpty) {
+        message = "";
+    }
+
+    myMessage = input;
 
     return bot.sendMessage(id, message);
 });
+*/
 
-bot.on(alarmTime == getCurrentTime(), (msg) => {
+bot.on('/alarm', (msg) => msg.reply.text('Tenes una alarma puesta a las ' + alarmTime));
+
+bot.on('/time', (msg) => msg.reply.text('Son las ' + getCurrentTime()));
+
+bot.on(/^\/set (.+)$/, (msg, props) => {
     const id = msg.from.id;
+    const arg = props.match[1];
+    alarmTime = arg;
+
+    message = "Seteaste la alarma a las " + alarmTime;
+    myMessage = 'Holis';
+    return bot.sendMessage(id, message);
+});
+
+emmiter.on('triggerAlarm', function someListener() {
+  //  const id = msg.from.id;
     const message = "ALARMA!" + alarmTime;
     console.log('ALARMA! ' + alarmTime);
+    bot.sendMessage(chatID, message);
+});
 
-    return bot.sendMessage(id, message)
-})
-
-if(alarmTime == getCurrentTime()) {
-    const id = msg.from.id;
-    const message = 'ALARMA!!' + alarmTime
-    console.log(message)
-    bot.sendMessage(id, message);
+//if(alarmTime == getCurrentTime()) {
+if(myMessage === 'Holis') {
+    console.log('MyMessage is Holis!');
+    emmiter.emit('triggerAlarm');
 }
+
+//emmiter.emit('triggerAlarm');
 
    // (msg) => msg.reply.text('Alarma seteada a las ' + alarmTime));
 bot.on(/siempre\sdel\slado\scorrecto/i, (msg) => {
@@ -51,6 +88,7 @@ bot.connect()
 
 function getCurrentTime() {
     const today = new Date();
+    console.log('Getting time...');
     currentTime = today.getHours() + ":" + today.getMinutes();
     
     return currentTime;
